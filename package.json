@@ -1,0 +1,35 @@
+{
+	"name": "@isopodlabs/big",
+	"version": "0.1.0",
+	"description": "High precision arithmetic.",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/adrianstephens/ts-big.git"
+	},
+	"main": "dist/big.js",
+	"files": [
+		"dist/**/*.{js,d.ts}",
+		"README.md"
+	],
+	"scripts": {
+		"build": "tsc"
+	},
+	"keywords": [
+		"typescript",
+		"multi-precision",
+		"trigonometry",
+		"bigint",
+		"math"
+	],
+	"author": "Adrian Stephens",
+	"license": "MIT",
+	"devDependencies": {
+		"@types/node": "^22.13.8",
+		"eslint": "^9.21.0",
+		"typescript": "^5.8.2",
+		"typescript-eslint": "^8.26.0"
+	},
+	"dependencies": {
+		"@isopodlabs/utilities": "^1.6.0"
+	}
+}
