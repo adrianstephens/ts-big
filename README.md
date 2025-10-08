@@ -157,7 +157,7 @@ console.log(a.addPrecision(100).toString()); // outputs '0.0625' - wtf?
 const b = big.float.fromString('0.1', 100);
 console.log(b.toString());
 console.log(b.addPrecision(100).toString()); // still outputs '0.1'
-console.log(b.addPrecision(100).toString(10, Infinity)); // outputs 0.0999999999999999999999999999999704177160542120572970601788019 (only ~30 valid bits)
+console.log(b.addPrecision(100).toString(10, Infinity)); // outputs 0.0999999999999999999999999999999704177160542120572970601788019 (only ~30 valid digits)
 
 ```
 

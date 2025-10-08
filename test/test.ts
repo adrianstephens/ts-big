@@ -1,5 +1,6 @@
-import * as bits from '../src/bits';
-import * as big from '../src/big';
+//import * as big from 'src/big';
+import * as big from '../dist/big';
+import * as dec from '../dist/dec';
 
 export interface equal<T> {
 	equal(b: T): boolean;
@@ -28,19 +29,22 @@ function timed(name: string, fn: ()=>void) {
 	console.log("finished: " + name + " in " + (end - start) + "ms");
 }
 
-const inf = big.float.Infinity;
-console.log(big.float.from(2).setPrecision(60).sqrt().toString(10, Infinity));
+console.log(dec.pi(100).toString());
+console.log(dec.sin(1, 100).toString());
 
-const a = big.float.from('0.1');
-console.log(a.toString(10, Infinity));
-console.log(a.addPrecision(100).toString(10, Infinity));
-const b = big.float.fromString('0.1', 100);
-console.log(b.toString(10, Infinity));
-console.log(b.addPrecision(100).toString(10, Infinity));
+const a = dec.float.from(1);
+const b = dec.float.from(10.12).addPrecision(100);
 
+const c = a.add(b);
+console.log(c.toString(10));
+const d = a + b;
+console.log(d.toString(10));
+console.log((b * b).toString());
+console.log(b.sqrt().toString());
+console.log((b * 10).sqrt().toString());
+console.log((b * 100).sqrt().toString());
 
-
-console.log(big.tan(inf, 1000).toString(10, Infinity));
+//console.log(big.tan(inf, 1000).toString(10, Infinity));
 console.log(big.atan(big.float.Infinity, 1000).toString(10, Infinity));
 console.log(big.tan(big.atan(big.float.fromString('0.1e2',1000), 1000), 1000).toString(10, Infinity));
 
@@ -59,41 +63,3 @@ console.log(t.pow(3).root(3).toString(10));
 console.log(t.sub(1).toString(10));
 console.log(t.mul(t).toString(10));
 console.log(t.div(10).toString(10));
-
-//const sp = new bits.DenseBits();
-const sp = new bits.SparseBits2();
-sp.setRange(42, 100);
-sp.clearRange(64, 96);
-sp.set(42);
-sp.set(1000);
-sp.set(10000);
-
-for (const i of sp) {
-	console.log(i);
-}
-
-
-/*
-sp.selfNot();
-
-for (let i = sp.next(-1, false); i !== -1; i = sp.next(i, false)) {
-	console.log(i);
-}
-*/
-
-sp.set(0);
-sp.set(2);
-sp.selfComplement();
-for (const i of sp.ranges()) {
-	console.log(i);
-}
-
-
-for (const i of sp.where(false)) {
-	console.log(i);
-}
-
-
-for (let i = sp.next(-1); i !== -1; i = sp.next(i)) {
-	console.log(i);
-}

@@ -63,9 +63,20 @@ function shift(m: bigint, n: number) {
 		? m << BigInt(n)
 		: m >> BigInt(-n);
 }
-function compare(a: bigint, b: bigint) {
+export function compare(a: bigint, b: bigint) {
 	return a === b ? 0 : a < b ? -1 : 1;
 }
+
+export function randomBits(bits: number) {
+	let m = 0n;
+	let i = bits;
+	while (i > 48) {
+		m = (m << 48n) | BigInt(Math.floor(Math.random() * 0x1000000000000));
+		i -= 48;
+	}
+	return (m << BigInt(i)) | BigInt(Math.floor(Math.random() * 0x1000000000000)) & ((1n << BigInt(i)) - 1n);
+}
+
 
 export const Round = {
 	trunc:		0,	//	Rounds towards zero.I.e. truncate, no rounding
@@ -75,7 +86,7 @@ export const Round = {
 	halfEven:	4,	//	Rounds towards nearest neighbour.If equidistant, rounds towards even neighbour
 } as const;
 
-type RoundMode = 0 | 1 | 2 | 3 | 4;
+export type RoundMode = 0 | 1 | 2 | 3 | 4;
 
 function round(m: bigint, n: number, mode: RoundMode): bigint {
 	const	neg = m < 0n;
@@ -417,14 +428,7 @@ export function min(...values: float[]) {
 }
 
 export function random(bits: number) {
-	let m = 0n;
-	let i = bits;
-	while (i > 48) {
-		m = (m << 48n) | BigInt(Math.floor(Math.random() * 0x1000000000000));
-		i -= 48;
-	}
-	m = (m << BigInt(i)) | BigInt(Math.floor(Math.random() * 0x1000000000000)) & ((1n << BigInt(i)) - 1n);
-	return new float(-bits, m);
+	return new float(-bits, randomBits(bits));
 }
 
 //Gauss-Legendre iterative algorithm for pi

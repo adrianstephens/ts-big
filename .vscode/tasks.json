@@ -11,6 +11,20 @@
 		},
 		{
 			"type": "shell",
+			"label": "compile-test",
+			"command": "node",
+			"args": [
+				"E:/GitHub/TypeScript/lib/tsc.js"
+			],
+			"group": "build",
+			"problemMatcher": "$tsc",
+			"options": {
+				"cwd": "${workspaceFolder}/test"
+			},
+			"dependsOn": "npm: build"
+		},
+		{
+			"type": "shell",
 			"label": "prepublish",
 			"command": "git add .; npm version ${input:version} --force",
 			"windows": {
