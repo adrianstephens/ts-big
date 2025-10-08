@@ -1,17 +1,12 @@
 {
 	"name": "@isopodlabs/big",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "High precision arithmetic.",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/adrianstephens/ts-big.git"
 	},
-	"main": "dist/big.js",
-	"exports": {
-		".": "./dist/big.js",
-		"./dec": "./dist/dec.js"
-	},
-
+	"main": "dist/index.js",
 	"files": [
 		"dist/**/*.{js,d.ts}",
 		"README.md"

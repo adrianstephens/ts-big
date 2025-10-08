@@ -1,6 +1,10 @@
-//import * as big from 'src/big';
-import * as big from '../dist/big';
-import * as dec from '../dist/dec';
+import * as big from '../dist';
+//const dec = big.dec;
+import {dec} from '../dist';
+
+
+//import * as big from '../dist/big';
+//import * as dec from '../dist/dec';
 
 export interface equal<T> {
 	equal(b: T): boolean;

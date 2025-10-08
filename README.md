@@ -5,12 +5,17 @@
 
 This module provides high-precision arithmetic and transcendental functions for big integers and custom floating-point numbers. It is designed for numerical applications requiring more precision than JavaScript's native `number` type.
 
+In addition, the 'dec' submodule provides (almost) the same functionality, but using a decimal exponent.
+
 ## ☕ Support My Work  
 If you use this package, consider [buying me a cup of tea](https://coff.ee/adrianstephens) to support future updates!  
 
 ## Features
 - Arbitrary-precision integer math (`bigint`)
-- Custom `float` class for high-precision floating-point arithmetic
+- Custom `float` class for high-precision floating-point arithmetic using binary exponents
+- Custom `dec.float` class for high-precision floating-point arithmetic using decimal exponents
+- Arithmetic methods add, sub, mul, div, mod, divmod
+- Comparison methods eq, ne, lt le, gt, ge
 - IEEE-754 compatible rounding modes
 - High-precision implementations of:
   - Square root, n-th root
@@ -23,7 +28,7 @@ If you use this package, consider [buying me a cup of tea](https://coff.ee/adria
 ## Usage
 Import the module:
 ```typescript
-import * as big from './big';
+import * as big from '@isopodlabs/big';
 ```
 
 ### Creating Floats
@@ -62,7 +67,7 @@ const pi = big.pi(bits); // High-precision pi
 ## API Reference
 
 ### bigint functions
-These are used by the float class internally, but are exposed for direct roots of bigints.
+These are used by the float classes internally, but are exposed for direct roots of bigints.
  - `sqrt(x: bigint)` - Square root
  - `root(x: bigint, b: number)` — n-th root
 
@@ -178,6 +183,43 @@ e.g.
 const sqrt2 = big.float.from(2).setPrecision(2000).sqrt(); // Calculate sqrt2 to 1000 binary places
 const ab = a.mul(b).capPrecision(100); // cap the precision to 100 binary places
 ```
+
+## Decimal Floating Point (`dec.float`)
+
+The `dec.float` class provides high-precision decimal floating-point arithmetic, similar to `big.float` but with a **base-10 exponent** instead of base-2. This means numbers are represented as $m \times 10^e$ (mantissa times a power of ten), making it ideal for financial and scientific calculations where decimal accuracy is required.
+
+### Key Features
+
+- **Decimal exponent:** Values are stored as $m \times 10^e$ (mantissa and decimal exponent)
+- **Consistent decimal rounding:** Supports all standard rounding modes, including half-even ("bankers' rounding")
+- **API parity with `big.float`:** Most methods and usage patterns are the same as `big.float`
+
+### Example Usage
+
+```typescript
+import { dec } from '@isopodlabs/big';
+
+// Create decimal floats
+const a = dec.float.from('123.456'); // From string
+const b = dec.float.from(0.1);       // From number
+
+// Arithmetic
+const sum = a.add(b);
+const product = a.mul(b);
+
+```
+
+## On Precision
+
+The precision in `dec.float` refers to the number of **decimal digits** in the mantissa. This is different from `big.float`, where precision is measured in binary bits.
+
+Most of the 'On Precision' section about `big.float` still applies, except that there is no seperate `fromString` because the string conversion is exact.
+
+### When to Use
+
+- Use `big.float` for binary floating-point math (base-2 exponent, scientific computing)
+- Use `dec.float` for decimal math (base-10 exponent, financial, accounting, or any case where decimal rounding is critical)
+
 
 ## License
 MIT
