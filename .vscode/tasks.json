@@ -7,21 +7,14 @@
 			"group": "build",
 			"problemMatcher": "$tsc",
 			"label": "npm: build",
-			"detail": "tsc"
 		},
 		{
-			"type": "shell",
-			"label": "compile-test",
-			"command": "node",
-			"args": [
-				"E:/GitHub/TypeScript/lib/tsc.js"
-			],
+			"type": "npm",
+			"script": "watch",
 			"group": "build",
-			"problemMatcher": "$tsc",
-			"options": {
-				"cwd": "${workspaceFolder}/test"
-			},
-			"dependsOn": "npm: build"
+			"problemMatcher": "$tsc-watch",
+			"label": "npm: watch",
+			"isBackground": true
 		},
 		{
 			"type": "shell",

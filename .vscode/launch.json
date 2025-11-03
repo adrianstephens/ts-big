@@ -5,28 +5,21 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"type": "node",
-			"request": "launch",
-			"name": "Old Test",
-			"runtimeExecutable": "ts-node",
-			"cwd": "${workspaceFolder}/test",
-			"args": ["test.ts"],
-			"preLaunchTask": "npm: build",
-			"console": "integratedTerminal"
-		},
-		{
 			"name": "Test",
 			"type": "node",
 			"request": "launch",
-			"program": "${workspaceFolder}/test/test.js",
-			"preLaunchTask": "compile-test",
+			"runtimeExecutable": "ts-node",
+			"args": [
+				"--compiler", "@isopodlabs/typescript",
+				"test/test.js"
+			],
 			"sourceMaps": true,
-			"cwd": "${workspaceFolder}/test",
 			"outFiles": [
 				"${workspaceFolder}/test/*.js",
 				"${workspaceFolder}/dist/*.js"
 			],
-			"console": "integratedTerminal"
+			"console": "integratedTerminal",
+			"preLaunchTask": "npm: watch"
 		}
 	]
 }
