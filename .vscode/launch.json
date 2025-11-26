@@ -11,8 +11,9 @@
 			"runtimeExecutable": "ts-node",
 			"args": [
 				"--compiler", "@isopodlabs/typescript",
-				"test/test.js"
+				"test.ts"
 			],
+			"cwd": "${workspaceFolder}/test",
 			"sourceMaps": true,
 			"outFiles": [
 				"${workspaceFolder}/test/*.js",

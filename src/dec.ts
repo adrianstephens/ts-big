@@ -226,13 +226,33 @@ export class float {
 		return this.exponent === Infinity		? this.infinity()
 			: this.create(this.exponent >> 1, sqrt(this.exponent & 1 ? this.mantissa * 10n : this.mantissa));
 	}
-	intpow(other: number): this {
+	ipow(other: number): this {
 		other = Math.floor(other);
 		return other === 0		? this.one()
 			: other === 1		? this
-			: other < 0 		? this.one().div(this.intpow(-other))
+			: other < 0 		? this.one().div(this.ipow(-other))
 			: this.create(this.exponent * other, this.mantissa ** BigInt(other));
 	}
+	rpow(n: number, d: number): this {
+		const recip = n * d < 0;
+		d = Math.floor(Math.abs(d));
+		if (d === 0)
+			return recip ? this.zero() : this.infinity();
+
+		const t1	= this.ipow(Math.abs(n));
+		const e1	= -t1.exponent % d;
+		const t2	= e1
+			?	this.create(((t1.exponent + e1) / d) - 1, root(t1._rep(t1.exponent + e1), d))
+			:	this.create(t1.exponent / d, root(t1.mantissa, d));
+		return recip ? this.one().div(t2) : t2;
+	}
+	npow(other: number): this {
+		return Number.isInteger(other) ? this.ipow(other): this.log().mul(other).exp();
+	}
+	pow(other: float|number|bigint): this {
+		return typeof other === "number" ? this.npow(other) : this.log().mul(other).exp();
+	}
+	/*
 	introot(other: number): this {
 		other = Math.floor(other);
 		if (other < 1)
@@ -242,17 +262,12 @@ export class float {
 			return this.create(((this.exponent + e1) / other) - 1, root(this._rep(this.exponent + e1), other));
 		return this.create(this.exponent / other, root(this.mantissa, other));
 	}
-	pow(other: float|number|bigint): this {
-		return typeof other === "number" && Number.isInteger(other)
-			? this.intpow(other)
-			: this.log().mul(other).exp();
-	}
 	root(other: float|number|bigint): this {
 		return typeof other === "number" && Number.isInteger(other)
 			? this.introot(other)
 			: this.log().div(other).exp();
 	}
-
+*/
 	toInt(mode: RoundMode = Round.trunc): bigint {
 		return this.exponent < 0
 			? round(this.mantissa, -this.exponent, mode)
@@ -411,7 +426,7 @@ function pi_helper(digits: number) {
 const pis: float[] = [];
 export function pi(digits: number): float {
 	const nextpow2 = bits.highestSet(digits);
-	return (pis[nextpow2] ??= pi_helper(nextpow2)).setPrecision(digits);
+	return (pis[nextpow2] ??= pi_helper(1 << nextpow2)).setPrecision(digits);
 }
 
 function sin_helper(x: float, pi: float, digits: number): float {

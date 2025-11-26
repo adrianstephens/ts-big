@@ -321,33 +321,57 @@ export class float {
 		return this.exponent === Infinity		? this.create(Infinity, 1n)
 			: this.create(this.exponent >> 1, sqrt(this.mantissa << (this.exponent & 1 ? 1n : 0n)));
 	}
-	intpow(other: number): this {
+	ipow(other: number): this {
 		other = Math.floor(other);
 		return other === 0		? this.one()
 			: other === 1		? this
-			: other < 0 		? this.one().div(this.intpow(-other))
+			: other < 0 		? this.one().div(this.ipow(-other))
 			: this.create(this.exponent * other, this.mantissa ** BigInt(other));
 	}
-	introot(other: number): this {
+	rpow(n: number, d: number): this {
+		const recip = n * d < 0;
+		d = Math.floor(Math.abs(d));
+		if (d === 0)
+			return recip ? this.zero() : this.infinity();
+
+		const t1	= this.ipow(Math.abs(n));
+		const e1	= -t1.exponent % d;
+		const t2	= e1
+			?	this.create(((t1.exponent + e1) / d) - 1, root(t1._rep(t1.exponent + e1), d))
+			:	this.create(t1.exponent / d, root(t1.mantissa, d));
+		return recip ? this.one().div(t2) : t2;
+	}
+	npow(other: number): this {
+		let n1 = Math.floor(other), d1 = 1;
+		let x = other - n1;
+
+		for (let n2 = 1, d2 = 0; d1 < 100 && Math.abs(x) > 1e-15; ) {
+			x = 1 / x;
+			const f = Math.floor(x);
+			[n2, n1, d2, d1] = [n1, f * n1 + n2, d1, f * d1 + d2];
+			x -= f;
+		}
+		return d1 === 1 ? this.ipow(n1) : d1 < 100 ? this.rpow(n1, d1) : this.log().mul(other).exp();
+	}
+	pow(other: float|number|bigint): this {
+		return typeof other === "number" ? this.npow(other) : this.log().mul(other).exp();
+	}
+	/*
+	iroot(other: number): this {
 		other = Math.floor(other);
 		if (other < 1)
-			return other < 0 ? this.one().div(this.introot(-other)) : this.infinity();
+			return other < 0 ? this.one().div(this.iroot(-other)) : this.infinity();
 		const e1 = -this.exponent % other;
 		if (e1)
 			return this.create(((this.exponent + e1) / other) - 1, root(this._rep(this.exponent + e1), other));
 		return this.create(this.exponent / other, root(this.mantissa, other));
 	}
-	pow(other: float|number|bigint): this {
-		return typeof other === "number" && Number.isInteger(other)
-			? this.intpow(other)
-			: this.log().mul(other).exp();
-	}
 	root(other: float|number|bigint): this {
 		return typeof other === "number" && Number.isInteger(other)
-			? this.introot(other)
+			? this.iroot(other)
 			: this.log().div(other).exp();
 	}
-
+*/
 	toInt(mode: RoundMode = Round.trunc): bigint {
 		return this.exponent < 0
 			? round(this.mantissa, -this.exponent, mode)
@@ -507,8 +531,8 @@ export class float2 extends float {
 		const precision = Math.max(-this.exponent, -other.exponent);
 		return this.create(this.exponent + other.exponent, this.mantissa * other.mantissa).capPrecision(precision);
 	}
-	intpow(other: number): this {
-		return super.intpow(other).capPrecision(-this.exponent);
+	ipow(other: number): this {
+		return super.ipow(other).capPrecision(-this.exponent);
 	}
 }
 
