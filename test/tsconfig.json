@@ -2,8 +2,8 @@
 	"extends": "../tsconfig.json",
 	"compilerOptions": {
 		"declaration": true,
-		"operatorOverloading": true,
-		"functionOverloadDispatch": true,
+		//"operatorOverloading": true,
+		//"functionOverloadDispatch": true,
 		"sourceMap": true,
 		"outDir": ".",
 		"paths": {

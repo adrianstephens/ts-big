@@ -48,6 +48,116 @@ export class float {
 	static readonly two		= new float(0, 2n);
 	static readonly Infinity= new float(Infinity, 1n);
 
+
+	static max(...values: float[]) {
+		let maxv = float.Infinity.neg();
+		for (const i of values) {
+			if (i.gt(maxv))
+				maxv = i;
+		}
+		return maxv;
+	}
+
+	static min(...values: float[]) {
+		let minv = float.Infinity;
+		for (const i of values) {
+			if (i.lt(minv))
+				minv = i;
+		}
+		return minv;
+	}
+
+	static random(digits: number) {
+		const m = randomBits(Math.ceil(digits * log2_10)); // = digits * log2(10)
+		return new float(-digits, m % (10n ** BigInt(digits)));
+	}
+
+	static pi(digits: number): float {
+		const nextpow2 = bits.highestSet(digits);
+		return (pis[nextpow2] ??= pi_helper(1 << nextpow2)).setPrecision(digits);
+	}
+
+	static sin(x: float|number|bigint, digits: number): float {
+		const π = this.pi(digits + 2);
+		return sin_helper(float.from(x), π, digits).setPrecision(digits);
+	}
+
+	static cos(x: float|number|bigint, digits: number): float {
+		const π = this.pi(digits + 2);
+		return sin_helper(float.from(x).add(π.shift(-1)), π, digits).setPrecision(digits);
+	}
+
+	static tan(x: float|number|bigint, digits: number): float {
+		x = float.from(x);
+		const π = this.pi(digits + 2);
+		return sin_helper(x, π, digits).div(sin_helper(x.add(π.shift(-1)), π, digits)).setPrecision(digits);
+	}
+	static asin(x: float|number|bigint, digits: number): float {
+		x = float.from(x);
+
+		if (x.lt(0.707))
+			return asin_helper(x, digits).setPrecision(digits);
+		
+		// arcsin(x) = pi/2 - 2*arcsin(sqrt((1-x)/2))
+		const π		= this.pi(digits + 2);
+		const asin1	= asin_helper(float.one.sub(x).shift(-1).sqrt(), digits);
+		const res	= π.shift(-1).sub(asin1.shift(1)).setPrecision(digits);
+		return x.sign() < 0 ? res.neg() : res;
+	}
+
+	// Use identity arccos(x) = pi/2 - arcsin(x)
+	static acos(x: float|number|bigint, digits: number): float {
+		const π		= this.pi(digits + 2);
+		x = float.from(x);
+		if (x.lt(0.707))
+			return π.shift(-1).sub(asin_helper(x, digits)).setPrecision(digits);
+
+		const asin	= asin_helper(float.one.sub(x).shift(-1).sqrt(), digits);
+		return x.sign() < 0
+			? π.sub(asin.shift(1)).setPrecision(digits)
+			: asin.shift(1).setPrecision(digits);
+	}
+	static atan(x: float|number|bigint|string, digits: number): float {
+		x = float.from(x);
+
+		if (x.abs().le(float.one))
+			return atan_helper(x, digits).setPrecision(digits);
+
+		// Argument reduction for |x| > 1
+		const π_2	= this.pi(digits + 2).shift(-1);
+		const a		= atan_helper(x.recip(), digits);
+		return (x.sign() < 0 ? π_2.neg() : π_2).sub(a).setPrecision(digits);
+	}
+
+	static atan2(y: float|number|bigint|string, x: float|number|bigint|string, digits: number): float {
+		y = float.from(y);
+		x = float.from(x);
+		const π_2 = this.pi(digits + 2).shift(-1);
+
+		if (x.mantissa === 0n) {
+			switch (y.sign()) {
+				case 1:		return π_2;
+				case -1:	return π_2.neg();
+				default:	return float.zero;
+			}
+		}
+
+		if (x.abs().gt(y.abs())) {
+			const a = atan_helper(y.div(x), digits);
+			return x.sign() > 0 ? a : a.add(y.sign() >= 0 ? π_2 : π_2.neg());
+		} else {
+			const a = atan_helper(x.div(y), digits);
+			return y.sign() > 0 ? π_2.sub(a) : π_2.neg().sub(a);
+		}
+	}
+	static log(x: float|number|bigint, nbits: number): float {
+		return float.from(x).setPrecision(nbits).log();
+	}
+
+	static exp(x: float|number|bigint, bits: number): float {
+		return float.from(x).setPrecision(Math.max(bits, 32)).exp();
+	}
+
 	static from<C extends new (exponent: number, mantissa: bigint) => any>(this: C, v: number|bigint|string|float): InstanceType<C> {
 		switch (typeof v) {
 			case 'object':
@@ -378,29 +488,6 @@ export class float {
 	[Symbol.for("debug.description")]() { return this.toString(10, 10); }
 }
 
-export function max(...values: float[]) {
-	let maxv = float.Infinity.neg();
-	for (const i of values) {
-		if (i.gt(maxv))
-			maxv = i;
-	}
-	return maxv;
-}
-
-export function min(...values: float[]) {
-	let minv = float.Infinity;
-	for (const i of values) {
-		if (i.lt(minv))
-			minv = i;
-	}
-	return minv;
-}
-
-export function random(digits: number) {
-	const m = randomBits(Math.ceil(digits * log2_10)); // = digits * log2(10)
-	return new float(-digits, m % (10n ** BigInt(digits)));
-}
-
 //-----------------------------------------------------------------------------
 // pi
 //-----------------------------------------------------------------------------
@@ -424,10 +511,6 @@ function pi_helper(digits: number) {
 }
 
 const pis: float[] = [];
-export function pi(digits: number): float {
-	const nextpow2 = bits.highestSet(digits);
-	return (pis[nextpow2] ??= pi_helper(1 << nextpow2)).setPrecision(digits);
-}
 
 function sin_helper(x: float, pi: float, digits: number): float {
 	// Reduce to [-pi, pi]
@@ -454,22 +537,6 @@ function sin_helper(x: float, pi: float, digits: number): float {
 	return result;
 }
 
-export function sin(x: float|number|bigint, digits: number): float {
-	const π = pi(digits + 2);
-	return sin_helper(float.from(x), π, digits).setPrecision(digits);
-}
-
-export function cos(x: float|number|bigint, digits: number): float {
-	const π = pi(digits + 2);
-	return sin_helper(float.from(x).add(π.shift(-1)), π, digits).setPrecision(digits);
-}
-
-export function tan(x: float|number|bigint, digits: number): float {
-	x = float.from(x);
-	const π = pi(digits + 2);
-	return sin_helper(x, π, digits).div(sin_helper(x.add(π.shift(-1)), π, digits)).setPrecision(digits);
-}
-
 //-----------------------------------------------------------------------------
 // asin,acos,atan
 //-----------------------------------------------------------------------------
@@ -490,32 +557,7 @@ function asin_helper(x: float, digits: number): float {
 	return result;
 }
 
-// High-precision arcsin using Taylor series and argument reduction
-export function asin(x: float|number|bigint, digits: number): float {
-	x = float.from(x);
 
-	if (x.lt(0.707))
-		return asin_helper(x, digits).setPrecision(digits);
-	
-	// arcsin(x) = pi/2 - 2*arcsin(sqrt((1-x)/2))
-	const π		= pi(digits + 2);
-	const asin1	= asin_helper(float.one.sub(x).shift(-1).sqrt(), digits);
-	const res	= π.shift(-1).sub(asin1.shift(1)).setPrecision(digits);
-	return x.sign() < 0 ? res.neg() : res;
-}
-
-// Use identity arccos(x) = pi/2 - arcsin(x)
-export function acos(x: float|number|bigint, digits: number): float {
-	const π		= pi(digits + 2);
-	x = float.from(x);
-	if (x.lt(0.707))
-		return π.shift(-1).sub(asin_helper(x, digits)).setPrecision(digits);
-
-	const asin	= asin_helper(float.one.sub(x).shift(-1).sqrt(), digits);
-	return x.sign() < 0
-		? π.sub(asin.shift(1)).setPrecision(digits)
-		: asin.shift(1).setPrecision(digits);
-}
 
 // Taylor series for |x| <= 1
 function atan_helper(x: float, digits: number): float {
@@ -533,40 +575,6 @@ function atan_helper(x: float, digits: number): float {
 	return result;
 }
 
-// High-precision arctan using Taylor series and argument reduction
-export function atan(x: float|number|bigint|string, digits: number): float {
-	x = float.from(x);
-
-	if (x.abs().le(float.one))
-		return atan_helper(x, digits).setPrecision(digits);
-
-	// Argument reduction for |x| > 1
-	const π_2	= pi(digits + 2).shift(-1);
-	const a		= atan_helper(x.recip(), digits);
-	return (x.sign() < 0 ? π_2.neg() : π_2).sub(a).setPrecision(digits);
-}
-
-export function atan2(y: float|number|bigint|string, x: float|number|bigint|string, digits: number): float {
-	y = float.from(y);
-	x = float.from(x);
-	const π_2 = pi(digits + 2).shift(-1);
-
-	if (x.mantissa === 0n) {
-		switch (y.sign()) {
-			case 1:		return π_2;
-			case -1:	return π_2.neg();
-			default:	return float.zero;
-		}
-	}
-
-	if (x.abs().gt(y.abs())) {
-		const a = atan_helper(y.div(x), digits);
-		return x.sign() > 0 ? a : a.add(y.sign() >= 0 ? π_2 : π_2.neg());
-	} else {
-		const a = atan_helper(x.div(y), digits);
-		return y.sign() > 0 ? π_2.sub(a) : π_2.neg().sub(a);
-	}
-}
 
 //-----------------------------------------------------------------------------
 // log/exp
@@ -594,10 +602,4 @@ function ln2(digits: number): float {
 	return (ln2s[nextpow2] ??= log_helper(float.one.addPrecision(1 << nextpow2).div(3n), 1 << nextpow2)).setPrecision(digits);
 }
 
-export function log(x: float|number|bigint, nbits: number): float {
-	return float.from(x).setPrecision(nbits).log();
-}
-
-export function exp(x: float|number|bigint, bits: number): float {
-	return float.from(x).setPrecision(Math.max(bits, 32)).exp();
-}
+export default float;
