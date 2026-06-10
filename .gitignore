@@ -3,3 +3,4 @@ dist
 *.tgz
 test/*.js
 test/*.d.ts
+*.tsbuildinfo
